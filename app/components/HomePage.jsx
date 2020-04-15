@@ -95,7 +95,14 @@ function MainActionMenu() {
           <div style={{ flex: '1 1 0' }}>
             Desktop Video
             <br />
-            <video ref={videoNodeRef} autoPlay width="640" height="480" />
+            <video ref={videoNodeRef} width="640" height="480" />
+            <br />
+            <button type="button" onClick={() => videoNodeRef.current.play()}>
+              Play
+            </button>
+            <button type="button" onClick={() => videoNodeRef.current.pause()}>
+              Pause
+            </button>
           </div>
         ) : (
           <div style={{ flex: '1 1 0' }}>

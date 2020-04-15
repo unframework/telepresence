@@ -1,8 +1,21 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useAsyncCallback } from 'react-async-hook';
 
+declare global {
+  // Chrome-specific constraints
+  interface MediaTrackConstraints {
+    mandatory: {
+      chromeMediaSource: string;
+      chromeMediaSourceId: string;
+      maxWidth: number;
+      maxHeight: number;
+      maxFrameRate: number;
+    };
+  }
+}
+
 async function getStream() {
-  const streamId = await new Promise((resolve) =>
+  const streamId = await new Promise<string>((resolve) =>
     chrome.desktopCapture.chooseDesktopMedia(['screen', 'window'], resolve)
   );
 
@@ -13,36 +26,50 @@ async function getStream() {
         chromeMediaSource: 'desktop',
         chromeMediaSourceId: streamId,
         maxWidth: 320,
-        maxHeight: 240
+        maxHeight: 240,
+        maxFrameRate: 2
       }
     }
   });
 }
 
-function BitmapPreview(props) {
-  const { bitmap } = props;
-
-  const canvasRef = useRef();
+const BitmapPreview: React.FC<{ bitmap: ImageBitmap }> = ({ bitmap }) => {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
+    if (!canvasRef.current) {
+      throw new Error('missing canvas');
+    }
+
     const ctx = canvasRef.current.getContext('2d');
+
+    if (!ctx) {
+      throw new Error('missing 2D context');
+    }
+
     ctx.drawImage(bitmap, 0, 0);
   }, [bitmap]);
 
   return <canvas ref={canvasRef} width={bitmap.width} height={bitmap.height} />;
-}
+};
 
-function MainActionMenu() {
-  const videoNodeRef = useRef();
+const MainActionMenu: React.FC = () => {
+  const videoNodeRef = useRef<HTMLVideoElement>(null);
   const streamAsync = useAsyncCallback(getStream);
 
-  const [bitmapInfoList, setBitmapInfoList] = useState([]);
+  const [bitmapInfoList, setBitmapInfoList] = useState<
+    { bitmap: ImageBitmap; bitmapId: number }[]
+  >([]);
 
   useEffect(() => {
     const mediaStream = streamAsync.result;
 
     if (!mediaStream) {
       return;
+    }
+
+    if (!videoNodeRef.current) {
+      throw new Error('missing video element');
     }
 
     videoNodeRef.current.srcObject = mediaStream;
@@ -97,10 +124,20 @@ function MainActionMenu() {
             <br />
             <video ref={videoNodeRef} width="640" height="480" />
             <br />
-            <button type="button" onClick={() => videoNodeRef.current.play()}>
+            <button
+              type="button"
+              onClick={() =>
+                videoNodeRef.current && videoNodeRef.current.play()
+              }
+            >
               Play
             </button>
-            <button type="button" onClick={() => videoNodeRef.current.pause()}>
+            <button
+              type="button"
+              onClick={() =>
+                videoNodeRef.current && videoNodeRef.current.pause()
+              }
+            >
               Pause
             </button>
           </div>
@@ -128,6 +165,6 @@ function MainActionMenu() {
       </div>
     </div>
   );
-}
+};
 
 export default MainActionMenu;

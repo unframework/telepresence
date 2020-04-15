@@ -4,7 +4,7 @@ import './MainActionMenu.scss';
 
 const indexUrl = chrome.runtime.getURL('index.html');
 
-function MainActionMenu() {
+const MainActionMenu: React.FC = () => {
   return (
     <div className="main-action-menu">
       <a
@@ -15,6 +15,6 @@ function MainActionMenu() {
       </a>
     </div>
   );
-}
+};
 
 export default MainActionMenu;

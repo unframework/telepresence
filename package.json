@@ -1,0 +1,43 @@
+{
+  "name": "tricorder",
+  "version": "0.0.1",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "watch": "cross-env NODE_ENV=development webpack --watch --mode=development"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/beamworks/tricorder.git"
+  },
+  "author": "",
+  "license": "UNLICENSED",
+  "bugs": {
+    "url": "https://github.com/beamworks/tricorder/issues"
+  },
+  "homepage": "https://github.com/beamworks/tricorder#readme",
+  "dependencies": {
+    "@babel/core": "^7.1.0",
+    "@babel/preset-env": "^7.1.0",
+    "@babel/preset-react": "^7.0.0",
+    "babel-loader": "^8.0.2",
+    "copy-webpack-plugin": "^4.5.2",
+    "cross-env": "^5.2.0",
+    "css-loader": "^1.0.0",
+    "file-loader": "^2.0.0",
+    "html-webpack-plugin": "^3.2.0",
+    "node-sass": "^4.13.1",
+    "react": "^16.5.2",
+    "react-dom": "^16.5.2",
+    "react-dynamics": "^0.7.0",
+    "sass": "^1.14.0",
+    "sass-loader": "^7.1.0",
+    "style-loader": "^0.23.0",
+    "webpack": "^4.19.1",
+    "webpack-cli": "^3.1.0"
+  },
+  "devDependencies": {
+    "prettier": "^2.0.4",
+    "webpack-dev-server": "^3.1.8"
+  }
+}

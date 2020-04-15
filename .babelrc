@@ -1,0 +1,10 @@
+{
+  "presets": [
+    [ "@babel/preset-env", {
+      "targets": {
+        "browsers": [ "last 5 chrome versions" ]
+      }
+    } ],
+    "@babel/preset-react"
+  ]
+}

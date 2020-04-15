@@ -20,6 +20,9 @@
     "@babel/core": "^7.1.0",
     "@babel/preset-env": "^7.1.0",
     "@babel/preset-react": "^7.0.0",
+    "@types/chrome": "0.0.104",
+    "@types/react": "^16.9.34",
+    "@types/react-dom": "^16.9.6",
     "babel-loader": "^8.0.2",
     "copy-webpack-plugin": "^4.5.2",
     "cross-env": "^5.2.0",
@@ -33,6 +36,8 @@
     "sass": "^1.14.0",
     "sass-loader": "^7.1.0",
     "style-loader": "^0.23.0",
+    "ts-loader": "^6.2.2",
+    "typescript": "^3.8.3",
     "webpack": "^4.19.1",
     "webpack-cli": "^3.1.0"
   },

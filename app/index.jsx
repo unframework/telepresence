@@ -3,4 +3,6 @@ import ReactDOM from 'react-dom';
 
 import './index.scss';
 
-ReactDOM.render(<div>TEST</div>, document.getElementById('app'));
+import HomePage from './components/HomePage.jsx';
+
+ReactDOM.render(<HomePage />, document.getElementById('app'));

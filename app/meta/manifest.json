@@ -15,7 +15,7 @@
     "default_title": "Telepresence"
   },
 
-  "permissions": [],
+  "permissions": ["desktopCapture"],
 
   "web_accessible_resources": ["assets/*"]
 }

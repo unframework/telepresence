@@ -36,40 +36,78 @@ async function getStream() {
   });
 }
 
-const BitmapPreview: React.FC<{ bitmap: ImageBitmap }> = ({ bitmap }) => {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
+async function convertBitmapToBlob(bitmap: ImageBitmap) {
+  const offscreen = new OffscreenCanvas(bitmap.width, bitmap.height);
+  const writeCtx = offscreen.getContext('bitmaprenderer');
+
+  if (!writeCtx) {
+    throw new Error('did not get renderer');
+  }
+
+  writeCtx.transferFromImageBitmap(bitmap);
+
+  const blob = await offscreen.convertToBlob({
+    type: 'image/jpeg',
+    quality: 0.95
+  });
+
+  return blob;
+}
+
+interface Participant {
+  id: string;
+  screenImageData: ArrayBuffer;
+}
+
+const BitmapImage: React.FC<{ data: ArrayBuffer }> = ({ data }) => {
+  const imageRef = useRef<HTMLImageElement>(null);
 
   useEffect(() => {
-    if (!canvasRef.current) {
+    if (!imageRef.current) {
       throw new Error('missing canvas');
     }
 
-    const ctx = canvasRef.current.getContext('2d');
+    const dataUint8 = new Uint8Array(data);
+    const blob = new Blob([dataUint8], { type: 'image/jpeg' });
+    imageRef.current.src = URL.createObjectURL(blob);
+  }, [data]);
 
-    if (!ctx) {
-      throw new Error('missing 2D context');
-    }
-
-    ctx.drawImage(bitmap, 0, 0);
-  }, [bitmap]);
-
-  return <canvas ref={canvasRef} width={bitmap.width} height={bitmap.height} />;
+  return <img ref={imageRef} />;
 };
 
 const HomePage: React.FC = () => {
+  const roomId = 'TESTROOM'; // @todo
+  const participantId = '09bdabae-3fd3-4769-b46e-ba748164f9ff'; // @todo
+
   const videoNodeRef = useRef<HTMLVideoElement>(null);
   const streamAsync = useAsyncCallback(getStream);
 
-  const [bitmapInfoList, setBitmapInfoList] = useState<
-    { bitmap: ImageBitmap; bitmapId: number }[]
-  >([]);
+  const [participants, setParticipants] = useState<{
+    [id: string]: Participant;
+  }>({});
 
   // maintain socket instance
   useEffect(() => {
     const socket = io(`${SERVER_URL}/nm-telepresence`);
 
-    socket.on('spaceScreenUpdate', (data: object) => {
-      console.log('got data', data);
+    socket.on('spaceScreenUpdate', (data?: { [key: string]: unknown }) => {
+      if (typeof data !== 'object') {
+        return;
+      }
+
+      const participantId = `${data.participantId}`;
+      const imageData = data.image;
+
+      if (!(imageData instanceof ArrayBuffer)) {
+        return;
+      }
+
+      setParticipants((prevParticipants) => {
+        return {
+          ...prevParticipants,
+          [participantId]: { id: participantId, screenImageData: imageData }
+        };
+      });
     });
 
     return () => {
@@ -96,22 +134,21 @@ const HomePage: React.FC = () => {
     let captureCount = 0;
     const captureIntervalId = setInterval(async () => {
       const bitmap = await imageCapture.grabFrame();
+      const imageBlob = await convertBitmapToBlob(bitmap);
 
-      setBitmapInfoList((prevBitmapInfoList) => {
-        // constrain to last N bitmaps
-        const bitmapId = (captureCount += 1);
-        const newList = [{ bitmap, bitmapId }, ...prevBitmapInfoList];
-
-        const trimmedList = newList.slice(0, 100);
-
-        // extra cleanup
-        const removedBitmaps = newList.slice(100);
-        for (const removedBitmapInfo of removedBitmaps) {
-          removedBitmapInfo.bitmap.close();
+      const res = await fetch(
+        `${SERVER_URL}/client/spaces/${encodeURIComponent(
+          roomId
+        )}/participants/${encodeURIComponent(participantId)}/screen`,
+        {
+          method: 'POST',
+          body: imageBlob
         }
+      );
 
-        return trimmedList;
-      });
+      if (!res.ok) {
+        throw new Error('error posting image data');
+      }
     }, 5000);
 
     return () => {
@@ -152,16 +189,17 @@ const HomePage: React.FC = () => {
           </div>
         )}
         <div style={{ flex: '3 3 0' }}>
-          {bitmapInfoList.map(({ bitmap, bitmapId }) => (
+          {Object.keys(participants).map((participantId) => (
             <div
-              key={bitmapId}
+              key={participantId}
               style={{
                 display: 'inline-block',
                 margin: '0 10px 10px 0',
                 border: '1px solid #eee'
               }}
             >
-              <BitmapPreview bitmap={bitmap} />
+              {participantId}:<br />
+              <BitmapImage data={participants[participantId].screenImageData} />
             </div>
           ))}
         </div>

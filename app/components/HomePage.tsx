@@ -1,5 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useAsyncCallback } from 'react-async-hook';
+import io from 'socket.io-client';
+
+const SERVER_URL = 'https://nm-telepresence-server-dev.glitch.me';
 
 declare global {
   // Chrome-specific constraints
@@ -53,13 +56,26 @@ const BitmapPreview: React.FC<{ bitmap: ImageBitmap }> = ({ bitmap }) => {
   return <canvas ref={canvasRef} width={bitmap.width} height={bitmap.height} />;
 };
 
-const MainActionMenu: React.FC = () => {
+const HomePage: React.FC = () => {
   const videoNodeRef = useRef<HTMLVideoElement>(null);
   const streamAsync = useAsyncCallback(getStream);
 
   const [bitmapInfoList, setBitmapInfoList] = useState<
     { bitmap: ImageBitmap; bitmapId: number }[]
   >([]);
+
+  // maintain socket instance
+  useEffect(() => {
+    const socket = io(`${SERVER_URL}/nm-telepresence`);
+
+    socket.on('spaceScreenUpdate', (data: object) => {
+      console.log('got data', data);
+    });
+
+    return () => {
+      socket.close();
+    };
+  }, []);
 
   useEffect(() => {
     const mediaStream = streamAsync.result;
@@ -154,4 +170,4 @@ const MainActionMenu: React.FC = () => {
   );
 };
 
-export default MainActionMenu;
+export default HomePage;

@@ -84,19 +84,19 @@ const MainActionMenu: React.FC = () => {
       setBitmapInfoList((prevBitmapInfoList) => {
         // constrain to last N bitmaps
         const bitmapId = (captureCount += 1);
-        const newList = [...prevBitmapInfoList, { bitmap, bitmapId }];
+        const newList = [{ bitmap, bitmapId }, ...prevBitmapInfoList];
 
-        const trimmedList = newList.slice(-10);
+        const trimmedList = newList.slice(0, 100);
 
         // extra cleanup
-        const removedBitmaps = newList.slice(0, -trimmedList.length);
+        const removedBitmaps = newList.slice(100);
         for (const removedBitmapInfo of removedBitmaps) {
           removedBitmapInfo.bitmap.close();
         }
 
         return trimmedList;
       });
-    }, 4000);
+    }, 5000);
 
     return () => {
       clearInterval(captureIntervalId);
@@ -120,26 +120,13 @@ const MainActionMenu: React.FC = () => {
       <div style={{ display: 'flex' }}>
         {streamAsync.result ? (
           <div style={{ flex: '1 1 0' }}>
-            Desktop Video
-            <br />
-            <video ref={videoNodeRef} width="640" height="480" />
-            <br />
-            <button
-              type="button"
-              onClick={() =>
-                videoNodeRef.current && videoNodeRef.current.play()
-              }
-            >
-              Play
-            </button>
-            <button
-              type="button"
-              onClick={() =>
-                videoNodeRef.current && videoNodeRef.current.pause()
-              }
-            >
-              Pause
-            </button>
+            Desktop video active{' '}
+            <video
+              ref={videoNodeRef}
+              width="8"
+              height="8"
+              style={{ border: '1px solid #000' }}
+            />
           </div>
         ) : (
           <div style={{ flex: '1 1 0' }}>
@@ -148,7 +135,7 @@ const MainActionMenu: React.FC = () => {
             {streamAsync.error && `Error: ${streamAsync.error}`}
           </div>
         )}
-        <div style={{ flex: '1 1 0' }}>
+        <div style={{ flex: '3 3 0' }}>
           {bitmapInfoList.map(({ bitmap, bitmapId }) => (
             <div
               key={bitmapId}

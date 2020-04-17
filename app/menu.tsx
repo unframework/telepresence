@@ -1,8 +1,12 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 
+import PageContainer from './components/PageContainer';
 import MainActionMenu from './components/MainActionMenu';
 
-import './menu.scss';
-
-ReactDOM.render(<MainActionMenu />, document.getElementById('app'));
+ReactDOM.render(
+  <PageContainer>
+    <MainActionMenu />
+  </PageContainer>,
+  document.getElementById('app')
+);

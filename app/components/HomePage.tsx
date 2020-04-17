@@ -1,10 +1,15 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useAsyncCallback } from 'react-async-hook';
+import { useAsync } from 'react-async-hook';
 import Box from '@material-ui/core/Box';
+import Typography from '@material-ui/core/Typography';
+import CircularProgress from '@material-ui/core/CircularProgress';
 
+import { signIn } from '../server';
 import SpaceView from './SpaceView';
 
 const HomePage: React.FC = () => {
+  const sessionAsync = useAsync(signIn, []);
+
   return (
     <Box
       display="flex"
@@ -13,9 +18,23 @@ const HomePage: React.FC = () => {
       width="100%"
       height="100%"
     >
-      <Box flex="none" minWidth={480} m={4}>
-        <SpaceView />
-      </Box>
+      {sessionAsync.loading ? (
+        <Box alignSelf="center">
+          <CircularProgress />
+        </Box>
+      ) : (
+        <Box flex="none" minWidth={480} m={4}>
+          {sessionAsync.result ? (
+            <SpaceView />
+          ) : (
+            <Typography variant="body1">
+              Error connecting to server:
+              <br />
+              {`${sessionAsync.error}`}
+            </Typography>
+          )}
+        </Box>
+      )}
     </Box>
   );
 };

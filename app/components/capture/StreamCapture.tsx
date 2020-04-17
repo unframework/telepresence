@@ -52,26 +52,40 @@ export function useStreamCapture(
     const mainTrack = mediaStream.getVideoTracks()[0];
     const imageCapture = new ImageCapture(mainTrack);
 
-    const updater = async () => {
-      const bitmap = await imageCapture.grabFrame();
-      const imageBlob = await convertBitmapToBlob(bitmap);
+    const finishWithError = (error: Error | undefined) => {
+      // ignore error if this video element/etc has already been unmounted
+      if (videoNodeRef.current !== videoNode) {
+        return;
+      }
 
-      await processImageRef.current(imageBlob);
+      // stop current activity and report error
+      setMediaStream(null);
+      setErrorMessage((error && error.message) || 'Unknown error');
     };
 
-    // @todo also listen for stream end event
-    const captureIntervalId = setInterval(() => {
-      updater().catch((error) => {
-        // ignore error if this video element/etc has already been unmounted
-        if (videoNodeRef.current !== videoNode) {
-          return;
-        }
+    const updater = async () => {
+      try {
+        const bitmap = await imageCapture.grabFrame();
+        const imageBlob = await convertBitmapToBlob(bitmap);
 
-        // stop current activity and report error
-        setMediaStream(null);
-        setErrorMessage((error && error.message) || 'Unknown error');
-      });
-    }, 5000);
+        await processImageRef.current(imageBlob);
+      } catch (error) {
+        finishWithError(error);
+      }
+    };
+
+    // periodic update loop
+    // @todo also listen for stream end event
+    const captureIntervalId = setInterval(updater, 5000);
+
+    // trigger initial update (no need to cancel this timeout
+    // due to built-in unmount checks)
+    setTimeout(updater, 0);
+
+    // listen for events
+    mainTrack.addEventListener('ended', () => {
+      finishWithError(new Error('Capture stream finished'));
+    });
 
     // clear out old error
     setErrorMessage(null);

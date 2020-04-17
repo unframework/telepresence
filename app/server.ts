@@ -15,6 +15,21 @@ export interface SpaceStatus {
   participants: { participantId: string; name: string }[];
 }
 
+async function apiFetch(url: string, body?: string | Blob): Promise<unknown> {
+  const res = await fetch(url, {
+    method: body ? 'POST' : 'GET',
+    body
+  });
+
+  if (!res.ok) {
+    throw new Error('request error');
+  }
+
+  if (!body) {
+    return res.json();
+  }
+}
+
 export async function signIn(): Promise<Session> {
   // @todo implement
   await new Promise((res) => setTimeout(res, 500));
@@ -52,19 +67,12 @@ export async function updateSpaceScreen(
   participantId: string,
   imageBlob: Blob
 ) {
-  const res = await fetch(
+  await apiFetch(
     `${SERVER_URL}/client/spaces/${encodeURIComponent(
       spaceId
     )}/participants/${encodeURIComponent(participantId)}/screen`,
-    {
-      method: 'POST',
-      body: imageBlob
-    }
+    imageBlob
   );
-
-  if (!res.ok) {
-    throw new Error('error posting image data');
-  }
 }
 
 export function createServerSocket() {

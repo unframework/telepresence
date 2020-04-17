@@ -83,6 +83,7 @@ const SpaceView: React.FC<RouteComponentProps<{
   const spaceId = decodeURIComponent(match.params.spaceId);
   const participantId = decodeURIComponent(match.params.participantId);
 
+  // @todo handle error
   const spaceStatusAsync = useAsync(fetchSpaceStatus, [spaceId]);
 
   const [participantScreenData, setParticipantScreenData] = useState<{

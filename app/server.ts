@@ -15,35 +15,78 @@ export interface SpaceStatus {
   participants: { participantId: string; name: string }[];
 }
 
-export async function signIn(): Promise<Session> {
-  // @todo implement
-  await new Promise((res) => setTimeout(res, 500));
+async function apiFetch(
+  path: string,
+  body?: string | Blob
+): Promise<{ [key: string]: unknown }> {
+  const res = await fetch(`${SERVER_URL}${path}`, {
+    credentials: 'include',
+    headers:
+      body && typeof body === 'string'
+        ? {
+            'Content-Type': 'application/json',
+            Accept: 'application/json'
+          }
+        : {
+            Accept: 'application/json'
+          },
+    method: body ? 'POST' : 'GET',
+    body
+  });
+
+  if (!res.ok) {
+    throw new Error('request error');
+  }
+
+  const [contentType] = (res.headers.get('Content-Type') || '').split(';');
+  if (contentType === 'application/json') {
+    const result = await res.json();
+
+    if (!result) {
+      throw new Error('response expected');
+    }
+
+    return result;
+  }
+
   return {};
+}
+
+export async function fetchSession(): Promise<Session> {
+  await apiFetch('/session');
+  return {}; // @todo more fields
 }
 
 export async function registerSpaceParticipant(
   accessCode: string
 ): Promise<SpaceRegistration> {
-  // @todo implement
-  await new Promise((res) => setTimeout(res, 500));
+  const result = await apiFetch(
+    '/client/registration',
+    JSON.stringify({ accessCode })
+  );
+
   return {
-    spaceId: 'TESTROOM',
-    participantId: 'c8dc45a2-e684-48f1-818f-54d2628bd377'
+    spaceId: `${result.spaceId}`,
+    participantId: `${result.participantId}`
   };
 }
 
 export async function fetchSpaceStatus(spaceId: string): Promise<SpaceStatus> {
-  // @todo implement
-  await new Promise((res) => setTimeout(res, 500));
+  const result = await apiFetch(
+    `/client/spaces/${encodeURIComponent(spaceId)}`
+  );
+
+  const resultParticipants = Array.isArray(result.participants)
+    ? result.participants
+    : [];
+
   return {
-    spaceId: 'TESTROOM',
-    name: 'Cool workspace',
-    participants: [
-      {
-        participantId: 'c8dc45a2-e684-48f1-818f-54d2628bd377',
-        name: 'Me!'
-      }
-    ]
+    spaceId: `${result.id}`,
+    name: `${result.name}`,
+    participants: resultParticipants.map((pct) => ({
+      participantId: `${pct.id}`,
+      name: `${pct.name}`
+    }))
   };
 }
 
@@ -52,19 +95,12 @@ export async function updateSpaceScreen(
   participantId: string,
   imageBlob: Blob
 ) {
-  const res = await fetch(
-    `${SERVER_URL}/client/spaces/${encodeURIComponent(
+  await apiFetch(
+    `/client/spaces/${encodeURIComponent(
       spaceId
     )}/participants/${encodeURIComponent(participantId)}/screen`,
-    {
-      method: 'POST',
-      body: imageBlob
-    }
+    imageBlob
   );
-
-  if (!res.ok) {
-    throw new Error('error posting image data');
-  }
 }
 
 export function createServerSocket() {

@@ -15,8 +15,11 @@ export interface SpaceStatus {
   participants: { participantId: string; name: string }[];
 }
 
-async function apiFetch(url: string, body?: string | Blob): Promise<unknown> {
-  const res = await fetch(url, {
+async function apiFetch(path: string): Promise<{ [key: string]: unknown }>;
+async function apiFetch(path: string, body: string | Blob): Promise<void>;
+
+async function apiFetch(path: string, body?: string | Blob) {
+  const res = await fetch(`${SERVER_URL}${path}`, {
     method: body ? 'POST' : 'GET',
     body
   });
@@ -26,7 +29,13 @@ async function apiFetch(url: string, body?: string | Blob): Promise<unknown> {
   }
 
   if (!body) {
-    return res.json();
+    const result = await res.json();
+
+    if (!result) {
+      throw new Error('response expected');
+    }
+
+    return result;
   }
 }
 
@@ -68,7 +77,7 @@ export async function updateSpaceScreen(
   imageBlob: Blob
 ) {
   await apiFetch(
-    `${SERVER_URL}/client/spaces/${encodeURIComponent(
+    `/client/spaces/${encodeURIComponent(
       spaceId
     )}/participants/${encodeURIComponent(participantId)}/screen`,
     imageBlob

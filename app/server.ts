@@ -58,11 +58,12 @@ export async function fetchSession(): Promise<Session> {
 }
 
 export async function registerSpaceParticipant(
-  accessCode: string
+  accessCode: string,
+  name: string
 ): Promise<SpaceRegistration> {
   const result = await apiFetch(
     '/client/registration',
-    JSON.stringify({ accessCode })
+    JSON.stringify({ accessCode, name })
   );
 
   return {

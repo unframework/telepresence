@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { RouteComponentProps } from 'react-router-dom';
 import { useAsync } from 'react-async-hook';
 import Box from '@material-ui/core/Box';
@@ -11,7 +11,20 @@ import CircularProgress from '@material-ui/core/CircularProgress';
 import { registerSpaceParticipant, SpaceRegistration } from '../server';
 import BasicForm, { BasicTextField } from './BasicForm';
 
+const STORAGE_PREFERRED_NAME_KEY = 'telepresence-prefname-93ebbb67';
+
+function getPreferredName(): string | undefined {
+  const savedName = localStorage.getItem(STORAGE_PREFERRED_NAME_KEY);
+  return savedName ? savedName : undefined;
+}
+
+function savePreferredName(name: string) {
+  localStorage.setItem(STORAGE_PREFERRED_NAME_KEY, name);
+}
+
 const LobbyView: React.FC<RouteComponentProps> = ({ history }) => {
+  const preferredName = useMemo(() => getPreferredName(), []);
+
   return (
     <Paper>
       <Box p={2}>
@@ -36,9 +49,12 @@ const LobbyView: React.FC<RouteComponentProps> = ({ history }) => {
             </Typography>
 
             <BasicForm
-              initialValues={{ accessCode: '' }}
+              initialValues={{ accessCode: '', name: preferredName || '' }}
               actionLabel="Join"
-              action={({ accessCode }) => registerSpaceParticipant(accessCode)}
+              action={({ accessCode, name }) => {
+                savePreferredName(name);
+                return registerSpaceParticipant(accessCode, name);
+              }}
               onComplete={({ spaceId, participantId }: SpaceRegistration) => {
                 // @todo toast notification
                 history.push(
@@ -51,7 +67,12 @@ const LobbyView: React.FC<RouteComponentProps> = ({ history }) => {
               <BasicTextField
                 name="accessCode"
                 label="Access Code"
-                placeholder="Ask organizer for access code"
+                placeholder="Ask organizer for this code"
+              />
+              <BasicTextField
+                name="name"
+                label="Your Name"
+                placeholder="This will be your name online"
               />
             </BasicForm>
           </Box>

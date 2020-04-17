@@ -1,5 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useAsyncCallback } from 'react-async-hook';
+import Box from '@material-ui/core/Box';
+import Typography from '@material-ui/core/Typography';
+import Paper from '@material-ui/core/Paper';
+import Link from '@material-ui/core/Link';
+import Divider from '@material-ui/core/Divider';
+import CircularProgress from '@material-ui/core/CircularProgress';
 
 import { createServerSocket, updateSpaceScreen } from '../server';
 
@@ -144,54 +150,72 @@ const HomePage: React.FC = () => {
   }, [streamAsync.result]);
 
   return (
-    <div className="home-page">
-      <a
-        href="#"
-        onClick={(event) => {
-          event.preventDefault();
-          streamAsync.execute();
-        }}
-      >
-        Get Desktop
-      </a>
+    <Box
+      display="flex"
+      justifyContent="center"
+      alignItems="flex-start"
+      width="100%"
+      height="100%"
+    >
+      <Box flex="none" minWidth={480} m={4}>
+        <Paper>
+          <Box p={2}>
+            <Box mb={2}>
+              <video
+                ref={videoNodeRef}
+                width="10"
+                height="10"
+                style={{ display: 'none' }}
+              />
 
-      <hr />
+              <Link
+                variant="body1"
+                href="#"
+                onClick={(event: React.MouseEvent<HTMLAnchorElement>) => {
+                  event.preventDefault();
+                  streamAsync.execute();
+                }}
+              >
+                Start Sharing Screen
+              </Link>
+            </Box>
 
-      <div style={{ display: 'flex' }}>
-        {streamAsync.result ? (
-          <div style={{ flex: '1 1 0' }}>
-            Desktop video active{' '}
-            <video
-              ref={videoNodeRef}
-              width="8"
-              height="8"
-              style={{ border: '1px solid #000' }}
-            />
-          </div>
-        ) : (
-          <div style={{ flex: '1 1 0' }}>
-            -- no video --
-            <br />
-            {streamAsync.error && `Error: ${streamAsync.error}`}
-          </div>
-        )}
-        <div style={{ flex: '3 3 0' }}>
-          {Object.keys(participants).map((participantId) => (
-            <div
-              key={participantId}
-              style={{
-                display: 'inline-block',
-                margin: '0 10px 10px 0',
-                border: '1px solid #eee'
-              }}
-            >
-              {participantId}:<br />
-              <BitmapImage data={participants[participantId].screenImageData} />
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
+            <Divider />
+
+            {streamAsync.result ? (
+              <Box mt={2}>
+                <Typography variant="subtitle1">
+                  Sharing with Space Participants
+                </Typography>
+                {Object.keys(participants).map((participantId) => (
+                  <Box key={participantId} display="inline-block" mr={1} mb={1}>
+                    {participantId}:<br />
+                    <BitmapImage
+                      data={participants[participantId].screenImageData}
+                    />
+                  </Box>
+                ))}
+              </Box>
+            ) : (
+              <Box mt={2}>
+                {streamAsync.error ? (
+                  <Typography variant="body1" color="error">
+                    Error: {`${streamAsync.error}`}
+                  </Typography>
+                ) : (
+                  <Typography variant="body1">
+                    Ready to share video{' '}
+                    {streamAsync.loading ? (
+                      <CircularProgress size="small" />
+                    ) : null}
+                  </Typography>
+                )}
+              </Box>
+            )}
+          </Box>
+        </Paper>
+      </Box>
+    </Box>
   );
 };
 

@@ -4,7 +4,17 @@ const SERVER_URL = 'https://nm-telepresence-server-dev.glitch.me';
 
 export interface Session {}
 
+export interface Space {}
+
 export async function signIn(): Promise<Session> {
+  // @todo implement
+  await new Promise((res) => setTimeout(res, 500));
+  return {};
+}
+
+export async function registerSpaceParticipant(
+  accessCode: string
+): Promise<Space> {
   // @todo implement
   await new Promise((res) => setTimeout(res, 500));
   return {};

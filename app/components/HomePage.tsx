@@ -41,7 +41,7 @@ const HomePage: React.FC = () => {
             <CircularProgress />
           </Box>
         ) : (
-          <Box flex="none" minWidth={480} m={4}>
+          <Box flex="none" minWidth={600} m={4}>
             {sessionAsync.result ? (
               <MainRoutes />
             ) : (

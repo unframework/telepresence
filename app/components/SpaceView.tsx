@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
+import { RouteComponentProps } from 'react-router-dom';
 import { useAsyncCallback } from 'react-async-hook';
 import Box from '@material-ui/core/Box';
 import Typography from '@material-ui/core/Typography';
@@ -80,9 +81,12 @@ const BitmapImage: React.FC<{ data: ArrayBuffer }> = ({ data }) => {
   return <img ref={imageRef} />;
 };
 
-const SpaceView: React.FC = () => {
-  const spaceId = 'TESTROOM'; // @todo
-  const participantId = '09bdabae-3fd3-4769-b46e-ba748164f9ff'; // @todo
+const SpaceView: React.FC<RouteComponentProps<{
+  spaceId: string;
+  participantId: string;
+}>> = ({ match }) => {
+  const spaceId = decodeURIComponent(match.params.spaceId);
+  const participantId = decodeURIComponent(match.params.participantId);
 
   const videoNodeRef = useRef<HTMLVideoElement>(null);
   const streamAsync = useAsyncCallback(getStream);

@@ -4,7 +4,10 @@ const SERVER_URL = 'https://nm-telepresence-server-dev.glitch.me';
 
 export interface Session {}
 
-export interface Space {}
+export interface SpaceRegistration {
+  spaceId: string;
+  participantId: string;
+}
 
 export async function signIn(): Promise<Session> {
   // @todo implement
@@ -14,10 +17,13 @@ export async function signIn(): Promise<Session> {
 
 export async function registerSpaceParticipant(
   accessCode: string
-): Promise<Space> {
+): Promise<SpaceRegistration> {
   // @todo implement
   await new Promise((res) => setTimeout(res, 500));
-  return {};
+  return {
+    spaceId: 'TESTROOM',
+    participantId: 'c8dc45a2-e684-48f1-818f-54d2628bd377'
+  };
 }
 
 export async function updateSpaceScreen(

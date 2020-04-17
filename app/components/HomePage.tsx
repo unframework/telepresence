@@ -17,8 +17,8 @@ import SpaceView from './SpaceView';
 const MainRoutes: React.FC = React.memo(() => {
   return (
     <Switch>
-      <Route path="/" component={LobbyView} />
-      <Route path="/space" component={SpaceView} />
+      <Route path="/" exact component={LobbyView} />
+      <Route path="/space/:spaceId/:participantId" component={SpaceView} />
       <Redirect to="/" />
     </Switch>
   );

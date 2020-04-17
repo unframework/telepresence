@@ -57,6 +57,22 @@ export async function fetchSession(): Promise<Session> {
   return {}; // @todo more fields
 }
 
+export async function createSpace(
+  name: string,
+  accessCode: string,
+  participantName: string
+): Promise<SpaceRegistration> {
+  const result = await apiFetch(
+    '/client/newSpace',
+    JSON.stringify({ name, accessCode, participantName })
+  );
+
+  return {
+    spaceId: `${result.spaceId}`,
+    participantId: `${result.participantId}`
+  };
+}
+
 export async function registerSpaceParticipant(
   accessCode: string,
   name: string

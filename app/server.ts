@@ -9,6 +9,12 @@ export interface SpaceRegistration {
   participantId: string;
 }
 
+export interface SpaceStatus {
+  spaceId: string;
+  name: string;
+  participants: { participantId: string; name: string }[];
+}
+
 export async function signIn(): Promise<Session> {
   // @todo implement
   await new Promise((res) => setTimeout(res, 500));
@@ -23,6 +29,21 @@ export async function registerSpaceParticipant(
   return {
     spaceId: 'TESTROOM',
     participantId: 'c8dc45a2-e684-48f1-818f-54d2628bd377'
+  };
+}
+
+export async function fetchSpaceStatus(spaceId: string): Promise<SpaceStatus> {
+  // @todo implement
+  await new Promise((res) => setTimeout(res, 500));
+  return {
+    spaceId: 'TESTROOM',
+    name: 'Cool workspace',
+    participants: [
+      {
+        participantId: 'c8dc45a2-e684-48f1-818f-54d2628bd377',
+        name: 'Me!'
+      }
+    ]
   };
 }
 

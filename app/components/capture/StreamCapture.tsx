@@ -59,6 +59,7 @@ export function useStreamCapture(
       await processImageRef.current(imageBlob);
     };
 
+    // @todo also listen for stream end event
     const captureIntervalId = setInterval(() => {
       updater().catch((error) => {
         // ignore error if this video element/etc has already been unmounted

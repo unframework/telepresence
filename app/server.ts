@@ -21,13 +21,15 @@ async function apiFetch(
 ): Promise<{ [key: string]: unknown }> {
   const res = await fetch(`${SERVER_URL}${path}`, {
     credentials: 'include',
-    headers: body
-      ? {
-          'Content-Type': 'application/json'
-        }
-      : {
-          Accept: 'application/json'
-        },
+    headers:
+      body && typeof body === 'string'
+        ? {
+            'Content-Type': 'application/json',
+            Accept: 'application/json'
+          }
+        : {
+            Accept: 'application/json'
+          },
     method: body ? 'POST' : 'GET',
     body
   });
@@ -70,17 +72,21 @@ export async function registerSpaceParticipant(
 }
 
 export async function fetchSpaceStatus(spaceId: string): Promise<SpaceStatus> {
-  // @todo implement
-  await new Promise((res) => setTimeout(res, 500));
+  const result = await apiFetch(
+    `/client/spaces/${encodeURIComponent(spaceId)}`
+  );
+
+  const resultParticipants = Array.isArray(result.participants)
+    ? result.participants
+    : [];
+
   return {
-    spaceId: 'TESTROOM',
-    name: 'Cool workspace',
-    participants: [
-      {
-        participantId: 'c8dc45a2-e684-48f1-818f-54d2628bd377',
-        name: 'Me!'
-      }
-    ]
+    spaceId: `${result.id}`,
+    name: `${result.name}`,
+    participants: resultParticipants.map((pct) => ({
+      participantId: `${pct.id}`,
+      name: `${pct.name}`
+    }))
   };
 }
 

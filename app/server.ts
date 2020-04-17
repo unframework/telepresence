@@ -15,12 +15,19 @@ export interface SpaceStatus {
   participants: { participantId: string; name: string }[];
 }
 
-async function apiFetch(path: string): Promise<{ [key: string]: unknown }>;
-async function apiFetch(path: string, body: string | Blob): Promise<void>;
-
-async function apiFetch(path: string, body?: string | Blob) {
+async function apiFetch(
+  path: string,
+  body?: string | Blob
+): Promise<{ [key: string]: unknown }> {
   const res = await fetch(`${SERVER_URL}${path}`, {
     credentials: 'include',
+    headers: body
+      ? {
+          'Content-Type': 'application/json'
+        }
+      : {
+          Accept: 'application/json'
+        },
     method: body ? 'POST' : 'GET',
     body
   });
@@ -29,7 +36,8 @@ async function apiFetch(path: string, body?: string | Blob) {
     throw new Error('request error');
   }
 
-  if (!body) {
+  const [contentType] = (res.headers.get('Content-Type') || '').split(';');
+  if (contentType === 'application/json') {
     const result = await res.json();
 
     if (!result) {
@@ -38,6 +46,8 @@ async function apiFetch(path: string, body?: string | Blob) {
 
     return result;
   }
+
+  return {};
 }
 
 export async function fetchSession(): Promise<Session> {
@@ -48,11 +58,14 @@ export async function fetchSession(): Promise<Session> {
 export async function registerSpaceParticipant(
   accessCode: string
 ): Promise<SpaceRegistration> {
-  // @todo implement
-  await new Promise((res) => setTimeout(res, 500));
+  const result = await apiFetch(
+    '/client/registration',
+    JSON.stringify({ accessCode })
+  );
+
   return {
-    spaceId: 'TESTROOM',
-    participantId: 'c8dc45a2-e684-48f1-818f-54d2628bd377'
+    spaceId: `${result.spaceId}`,
+    participantId: `${result.participantId}`
   };
 }
 

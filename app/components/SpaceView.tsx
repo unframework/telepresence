@@ -42,7 +42,7 @@ const BitmapImage: React.FC<{ data: ArrayBuffer }> = ({ data }) => {
     imageRef.current.src = URL.createObjectURL(blob);
   }, [data]);
 
-  return <img ref={imageRef} />;
+  return <img ref={imageRef} style={{ width: '100%', height: 'auto' }} />;
 };
 
 const SpaceView: React.FC<RouteComponentProps<{
@@ -154,12 +154,25 @@ const SpaceView: React.FC<RouteComponentProps<{
           <Typography variant="subtitle1">
             Sharing with Space Participants
           </Typography>
-          {Object.keys(participants).map((participantId) => (
-            <Box key={participantId} display="inline-block" mr={1} mb={1}>
-              {participantId}:<br />
-              <BitmapImage data={participants[participantId].screenImageData} />
-            </Box>
-          ))}
+
+          <Box
+            display="flex"
+            flexWrap="wrap"
+            mt={1}
+            ml="auto"
+            mr="auto"
+            justifyContent="flex-start"
+            width={500}
+          >
+            {Object.keys(participants).map((participantId) => (
+              <Box key={participantId} p={1} width="50%">
+                {participantId}:<br />
+                <BitmapImage
+                  data={participants[participantId].screenImageData}
+                />
+              </Box>
+            ))}
+          </Box>
         </Box>
       </Box>
     </Paper>

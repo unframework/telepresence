@@ -10,7 +10,7 @@ import Box from '@material-ui/core/Box';
 import Typography from '@material-ui/core/Typography';
 import CircularProgress from '@material-ui/core/CircularProgress';
 
-import { signIn } from '../server';
+import { fetchSession } from '../server';
 import LobbyView from './LobbyView';
 import SpaceView from './SpaceView';
 
@@ -25,7 +25,7 @@ const MainRoutes: React.FC = React.memo(() => {
 });
 
 const HomePage: React.FC = () => {
-  const sessionAsync = useAsync(signIn, []);
+  const sessionAsync = useAsync(fetchSession, []);
 
   return (
     <Router>

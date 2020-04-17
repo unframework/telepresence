@@ -20,6 +20,7 @@ async function apiFetch(path: string, body: string | Blob): Promise<void>;
 
 async function apiFetch(path: string, body?: string | Blob) {
   const res = await fetch(`${SERVER_URL}${path}`, {
+    credentials: 'include',
     method: body ? 'POST' : 'GET',
     body
   });
@@ -39,10 +40,9 @@ async function apiFetch(path: string, body?: string | Blob) {
   }
 }
 
-export async function signIn(): Promise<Session> {
-  // @todo implement
-  await new Promise((res) => setTimeout(res, 500));
-  return {};
+export async function fetchSession(): Promise<Session> {
+  await apiFetch('/session');
+  return {}; // @todo more fields
 }
 
 export async function registerSpaceParticipant(

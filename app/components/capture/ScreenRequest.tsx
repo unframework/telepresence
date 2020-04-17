@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { useAsyncCallback } from 'react-async-hook';
 
-export type ScreenMediaRequestState = [() => void, boolean, Error];
+export type ScreenMediaRequestState = [() => void, boolean, Error | undefined];
 
 export function useScreenMediaRequest(
   onComplete: (mediaStream: MediaStream) => void

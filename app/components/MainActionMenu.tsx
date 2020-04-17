@@ -1,7 +1,5 @@
 import React from 'react';
 
-import './MainActionMenu.scss';
-
 const indexUrl = chrome.runtime.getURL('index.html');
 
 const MainActionMenu: React.FC = () => {

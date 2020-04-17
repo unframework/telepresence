@@ -1,8 +1,12 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 
-import './index.scss';
-
+import PageContainer from './components/PageContainer';
 import HomePage from './components/HomePage';
 
-ReactDOM.render(<HomePage />, document.getElementById('app'));
+ReactDOM.render(
+  <PageContainer>
+    <HomePage />
+  </PageContainer>,
+  document.getElementById('app')
+);

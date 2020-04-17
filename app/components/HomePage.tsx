@@ -1,8 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useAsyncCallback } from 'react-async-hook';
-import io from 'socket.io-client';
 
-const SERVER_URL = 'https://nm-telepresence-server-dev.glitch.me';
+import { createServerSocket, updateSpaceScreen } from '../server';
 
 declare global {
   // Chrome-specific constraints
@@ -76,7 +75,7 @@ const BitmapImage: React.FC<{ data: ArrayBuffer }> = ({ data }) => {
 };
 
 const HomePage: React.FC = () => {
-  const roomId = 'TESTROOM'; // @todo
+  const spaceId = 'TESTROOM'; // @todo
   const participantId = '09bdabae-3fd3-4769-b46e-ba748164f9ff'; // @todo
 
   const videoNodeRef = useRef<HTMLVideoElement>(null);
@@ -88,7 +87,7 @@ const HomePage: React.FC = () => {
 
   // maintain socket instance
   useEffect(() => {
-    const socket = io(`${SERVER_URL}/nm-telepresence`);
+    const socket = createServerSocket();
 
     socket.on('spaceScreenUpdate', (data?: { [key: string]: unknown }) => {
       if (typeof data !== 'object') {
@@ -136,19 +135,7 @@ const HomePage: React.FC = () => {
       const bitmap = await imageCapture.grabFrame();
       const imageBlob = await convertBitmapToBlob(bitmap);
 
-      const res = await fetch(
-        `${SERVER_URL}/client/spaces/${encodeURIComponent(
-          roomId
-        )}/participants/${encodeURIComponent(participantId)}/screen`,
-        {
-          method: 'POST',
-          body: imageBlob
-        }
-      );
-
-      if (!res.ok) {
-        throw new Error('error posting image data');
-      }
+      await updateSpaceScreen(spaceId, participantId, imageBlob);
     }, 5000);
 
     return () => {

@@ -1,5 +1,6 @@
 const path = require('path');
 const webpack = require('webpack');
+const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
 
@@ -40,17 +41,6 @@ module.exports = {
       {
         test: /\.(jpe?g|png|gif|svg)$/i,
         use: 'file-loader?name=assets/[name].[hash].[ext]'
-      },
-
-      // some of the external libraries use ES6 syntax
-      // compile it to ES5 for Uglify to work
-      {
-        test: /node_modules[\\\/]react-collectable[\\\/].*\.(js)$/,
-        use: 'babel-loader'
-      },
-      {
-        test: /node_modules[\\\/]react-dynamics[\\\/].*\.(js)$/,
-        use: 'babel-loader'
       }
     ]
   },
@@ -58,6 +48,9 @@ module.exports = {
     extensions: ['.tsx', '.ts', '.js']
   },
   plugins: [
+    new CleanWebpackPlugin({
+      cleanStaleWebpackAssets: false // avoid cleaning manifest files in dev
+    }),
     new HtmlWebpackPlugin({
       chunks: ['index'],
       filename: 'index.html',

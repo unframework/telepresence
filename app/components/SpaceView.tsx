@@ -48,7 +48,7 @@ const BitmapImage: React.FC<{ data: ArrayBuffer }> = ({ data }) => {
 
 const SpaceParticipantsBlock: React.FC<{
   spaceStatus: SpaceStatus;
-  participantScreenData: { [id: string]: ArrayBuffer | undefined };
+  participantScreenData: { [id: string]: ArrayBuffer | null | undefined };
 }> = ({ spaceStatus, participantScreenData }) => {
   const { participants } = spaceStatus;
 
@@ -86,12 +86,52 @@ const SpaceView: React.FC<RouteComponentProps<{
   // @todo handle error
   const spaceStatusAsync = useAsync(fetchSpaceStatus, [spaceId]);
 
+  // manage per-participant dynamic data
   const [participantScreenData, setParticipantScreenData] = useState<{
-    [id: string]: ArrayBuffer | undefined;
+    [id: string]: ArrayBuffer | null | undefined;
   }>({});
+
+  useEffect(() => {
+    const spaceStatus = spaceStatusAsync.result;
+
+    if (!spaceStatus) {
+      return;
+    }
+
+    // on any roster changes, synchronize the participant dictionary
+    setParticipantScreenData((prevData) => {
+      const updatedData = { ...prevData };
+
+      // fill in any missing participant ID keys
+      for (const pct of spaceStatus.participants) {
+        if (updatedData[pct.participantId] === undefined) {
+          updatedData[pct.participantId] = null;
+        }
+      }
+
+      // remove stale participant ID keys to free up memory
+      for (const prevPctID of Object.keys(prevData)) {
+        const participantIsIntact = spaceStatus.participants.some(
+          (pct) => pct.participantId === prevPctID
+        );
+
+        if (!participantIsIntact) {
+          delete updatedData[prevPctID];
+        }
+      }
+
+      return updatedData;
+    });
+  }, [spaceStatusAsync.result]);
 
   // maintain socket instance
   useEffect(() => {
+    const spaceStatus = spaceStatusAsync.result;
+
+    if (!spaceStatus) {
+      return;
+    }
+
     const socket = createServerSocket();
 
     socket.on('spaceScreenUpdate', (data?: { [key: string]: unknown }) => {
@@ -99,6 +139,7 @@ const SpaceView: React.FC<RouteComponentProps<{
         return;
       }
 
+      const eventSpaceId = `${data.spaceId}`;
       const participantId = `${data.participantId}`;
       const imageData = data.image;
 
@@ -106,8 +147,16 @@ const SpaceView: React.FC<RouteComponentProps<{
         return;
       }
 
-      // @todo only set the keys that are valid (also helps avoid memory leak)
+      if (eventSpaceId !== spaceStatus.spaceId) {
+        return;
+      }
+
       setParticipantScreenData((prevData) => {
+        // ignore if there is no existing known key for this ID
+        if (prevData[participantId] === undefined) {
+          return prevData;
+        }
+
         return {
           ...prevData,
           [participantId]: imageData
@@ -118,7 +167,7 @@ const SpaceView: React.FC<RouteComponentProps<{
     return () => {
       socket.close();
     };
-  }, []);
+  }, [spaceStatusAsync.result]);
 
   const [
     setVideoStream,

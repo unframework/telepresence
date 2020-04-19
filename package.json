@@ -1,21 +1,22 @@
 {
-  "name": "tricorder",
+  "name": "telepresence-chrome",
   "version": "0.0.1",
   "description": "",
   "main": "index.js",
   "scripts": {
-    "watch": "cross-env NODE_ENV=development webpack --watch --mode=development"
+    "watch": "cross-env NODE_ENV=development webpack --watch --mode=development",
+    "build": "cross-env NODE_ENV=production webpack --mode=production"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/beamworks/tricorder.git"
+    "url": "git+https://github.com/unframework/telepresence-chrome.git"
   },
   "author": "",
   "license": "UNLICENSED",
   "bugs": {
-    "url": "https://github.com/beamworks/tricorder/issues"
+    "url": "https://github.com/unframework/telepresence-chrome/issues"
   },
-  "homepage": "https://github.com/beamworks/tricorder#readme",
+  "homepage": "https://github.com/unframework/telepresence-chrome#readme",
   "dependencies": {
     "@babel/core": "^7.1.0",
     "@babel/preset-env": "^7.1.0",

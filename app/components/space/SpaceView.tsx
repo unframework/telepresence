@@ -8,14 +8,10 @@ import Link from '@material-ui/core/Link';
 import Divider from '@material-ui/core/Divider';
 import CircularProgress from '@material-ui/core/CircularProgress';
 
-import {
-  createServerSocket,
-  fetchSpaceStatus,
-  updateSpaceScreen,
-  SpaceStatus
-} from '../../server';
+import { fetchSpaceStatus, updateSpaceScreen, SpaceStatus } from '../../server';
 import { useStreamCapture } from '../capture/StreamCapture';
 import { useScreenMediaRequest } from '../capture/ScreenRequest';
+import { useSpaceSocket } from './SpaceViewSocket';
 
 const BitmapImage: React.FC<{ data: ArrayBuffer }> = ({ data }) => {
   const imageRef = useRef<HTMLImageElement>(null);
@@ -122,30 +118,8 @@ const SpaceView: React.FC<RouteComponentProps<{
   }, [spaceStatus]);
 
   // maintain socket instance
-  useEffect(() => {
-    if (!spaceStatusLoaded) {
-      return;
-    }
-
-    const socket = createServerSocket();
-
-    socket.on('spaceScreenUpdate', (data?: { [key: string]: unknown }) => {
-      if (typeof data !== 'object') {
-        return;
-      }
-
-      const eventSpaceId = `${data.spaceId}`;
-      const participantId = `${data.participantId}`;
-      const imageData = data.image;
-
-      if (!(imageData instanceof ArrayBuffer)) {
-        return;
-      }
-
-      if (eventSpaceId !== spaceId) {
-        return;
-      }
-
+  useSpaceSocket(spaceId, spaceStatusLoaded, {
+    onScreenUpdate(participantId, imageData) {
       setParticipantScreenData((prevData) => {
         // ignore if there is no existing known key for this ID
         if (prevData[participantId] === undefined) {
@@ -157,12 +131,8 @@ const SpaceView: React.FC<RouteComponentProps<{
           [participantId]: imageData
         };
       });
-    });
-
-    return () => {
-      socket.close();
-    };
-  }, [spaceId, spaceStatusLoaded]);
+    }
+  });
 
   const [
     setVideoStream,

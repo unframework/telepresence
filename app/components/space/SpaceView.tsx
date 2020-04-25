@@ -13,9 +13,9 @@ import {
   fetchSpaceStatus,
   updateSpaceScreen,
   SpaceStatus
-} from '../server';
-import { useStreamCapture } from './capture/StreamCapture';
-import { useScreenMediaRequest } from './capture/ScreenRequest';
+} from '../../server';
+import { useStreamCapture } from '../capture/StreamCapture';
+import { useScreenMediaRequest } from '../capture/ScreenRequest';
 
 declare global {
   // Chrome-specific constraints

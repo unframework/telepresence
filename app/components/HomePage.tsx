@@ -12,7 +12,7 @@ import CircularProgress from '@material-ui/core/CircularProgress';
 
 import { fetchSession } from '../server';
 import LobbyView from './LobbyView';
-import SpaceView from './SpaceView';
+import SpaceView from './space/SpaceView';
 
 const MainRoutes: React.FC = React.memo(() => {
   return (

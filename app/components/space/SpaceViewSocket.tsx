@@ -2,10 +2,12 @@ import React, { useEffect, useRef } from 'react';
 
 import { createServerSocket } from '../../server';
 
+// @todo consider moving parsing code into server file?
 export function useSpaceSocket(
   spaceId: string,
   isEnabled: boolean,
   handlers: {
+    onUpdate(): void;
     onScreenUpdate(participantId: string, imageData: ArrayBuffer): void;
   }
 ) {
@@ -20,6 +22,20 @@ export function useSpaceSocket(
     }
 
     const socket = createServerSocket();
+
+    socket.on('spaceUpdate', (data?: { [key: string]: unknown }) => {
+      if (typeof data !== 'object') {
+        return;
+      }
+
+      const eventSpaceId = `${data.spaceId}`;
+
+      if (eventSpaceId !== spaceId) {
+        return;
+      }
+
+      handlersRef.current.onUpdate();
+    });
 
     socket.on('spaceScreenUpdate', (data?: { [key: string]: unknown }) => {
       if (typeof data !== 'object') {

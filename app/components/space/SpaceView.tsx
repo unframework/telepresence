@@ -66,8 +66,9 @@ const SpaceView: React.FC<RouteComponentProps<{
   const spaceId = decodeURIComponent(match.params.spaceId);
   const participantId = decodeURIComponent(match.params.participantId);
 
+  // @todo updating spinner
   // @todo handle error
-  const spaceStatusAsync = useAsync(fetchSpaceStatus, [spaceId], {
+  const spaceStatusAsync = useAsync(() => fetchSpaceStatus(spaceId), [], {
     // preserve existing data, if any
     setLoading(prevState) {
       return {
@@ -119,6 +120,10 @@ const SpaceView: React.FC<RouteComponentProps<{
 
   // maintain socket instance
   useSpaceSocket(spaceId, spaceStatusLoaded, {
+    onUpdate() {
+      spaceStatusAsync.execute();
+    },
+
     onScreenUpdate(participantId, imageData) {
       setParticipantScreenData((prevData) => {
         // ignore if there is no existing known key for this ID

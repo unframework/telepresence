@@ -8,27 +8,10 @@ import Link from '@material-ui/core/Link';
 import Divider from '@material-ui/core/Divider';
 import CircularProgress from '@material-ui/core/CircularProgress';
 
-import {
-  createServerSocket,
-  fetchSpaceStatus,
-  updateSpaceScreen,
-  SpaceStatus
-} from '../server';
-import { useStreamCapture } from './capture/StreamCapture';
-import { useScreenMediaRequest } from './capture/ScreenRequest';
-
-declare global {
-  // Chrome-specific constraints
-  interface MediaTrackConstraints {
-    mandatory: {
-      chromeMediaSource: string;
-      chromeMediaSourceId: string;
-      maxWidth: number;
-      maxHeight: number;
-      maxFrameRate: number;
-    };
-  }
-}
+import { fetchSpaceStatus, updateSpaceScreen, SpaceStatus } from '../../server';
+import { useStreamCapture } from '../capture/StreamCapture';
+import { useScreenMediaRequest } from '../capture/ScreenRequest';
+import { useSpaceSocket } from './SpaceViewSocket';
 
 const BitmapImage: React.FC<{ data: ArrayBuffer }> = ({ data }) => {
   const imageRef = useRef<HTMLImageElement>(null);
@@ -48,7 +31,7 @@ const BitmapImage: React.FC<{ data: ArrayBuffer }> = ({ data }) => {
 
 const SpaceParticipantsBlock: React.FC<{
   spaceStatus: SpaceStatus;
-  participantScreenData: { [id: string]: ArrayBuffer | undefined };
+  participantScreenData: { [id: string]: ArrayBuffer | null | undefined };
 }> = ({ spaceStatus, participantScreenData }) => {
   const { participants } = spaceStatus;
 
@@ -83,42 +66,78 @@ const SpaceView: React.FC<RouteComponentProps<{
   const spaceId = decodeURIComponent(match.params.spaceId);
   const participantId = decodeURIComponent(match.params.participantId);
 
+  // @todo updating spinner
   // @todo handle error
-  const spaceStatusAsync = useAsync(fetchSpaceStatus, [spaceId]);
+  const spaceStatusAsync = useAsync(() => fetchSpaceStatus(spaceId), [], {
+    // preserve existing data, if any
+    setLoading(prevState) {
+      return {
+        ...prevState,
+        status: 'loading',
+        loading: true
+      };
+    }
+  });
 
+  const spaceStatus = spaceStatusAsync.result;
+  const spaceStatusLoaded = !!spaceStatus;
+
+  // manage per-participant dynamic data
   const [participantScreenData, setParticipantScreenData] = useState<{
-    [id: string]: ArrayBuffer | undefined;
+    [id: string]: ArrayBuffer | null | undefined;
   }>({});
 
-  // maintain socket instance
   useEffect(() => {
-    const socket = createServerSocket();
+    if (!spaceStatus) {
+      return;
+    }
 
-    socket.on('spaceScreenUpdate', (data?: { [key: string]: unknown }) => {
-      if (typeof data !== 'object') {
-        return;
+    // on any roster changes, synchronize the participant dictionary
+    setParticipantScreenData((prevData) => {
+      const updatedData = { ...prevData };
+
+      // fill in any missing participant ID keys
+      for (const pct of spaceStatus.participants) {
+        if (updatedData[pct.participantId] === undefined) {
+          updatedData[pct.participantId] = null;
+        }
       }
 
-      const participantId = `${data.participantId}`;
-      const imageData = data.image;
+      // remove stale participant ID keys to free up memory
+      for (const prevPctID of Object.keys(prevData)) {
+        const participantIsIntact = spaceStatus.participants.some(
+          (pct) => pct.participantId === prevPctID
+        );
 
-      if (!(imageData instanceof ArrayBuffer)) {
-        return;
+        if (!participantIsIntact) {
+          delete updatedData[prevPctID];
+        }
       }
 
-      // @todo only set the keys that are valid (also helps avoid memory leak)
+      return updatedData;
+    });
+  }, [spaceStatus]);
+
+  // maintain socket instance
+  useSpaceSocket(spaceId, spaceStatusLoaded, {
+    onUpdate() {
+      spaceStatusAsync.execute();
+    },
+
+    onScreenUpdate(participantId, imageData) {
       setParticipantScreenData((prevData) => {
+        // ignore if there is no existing known key for this ID
+        if (prevData[participantId] === undefined) {
+          return prevData;
+        }
+
         return {
           ...prevData,
           [participantId]: imageData
         };
       });
-    });
-
-    return () => {
-      socket.close();
-    };
-  }, []);
+    }
+  });
 
   const [
     setVideoStream,

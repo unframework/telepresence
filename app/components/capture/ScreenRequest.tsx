@@ -1,6 +1,19 @@
 import { useEffect, useRef } from 'react';
 import { useAsyncCallback } from 'react-async-hook';
 
+declare global {
+  // Chrome-specific constraints
+  interface MediaTrackConstraints {
+    mandatory: {
+      chromeMediaSource: string;
+      chromeMediaSourceId: string;
+      maxWidth: number;
+      maxHeight: number;
+      maxFrameRate: number;
+    };
+  }
+}
+
 export type ScreenMediaRequestState = [() => void, boolean, Error | undefined];
 
 export function useScreenMediaRequest(

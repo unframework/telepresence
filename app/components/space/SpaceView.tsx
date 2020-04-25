@@ -17,19 +17,6 @@ import {
 import { useStreamCapture } from '../capture/StreamCapture';
 import { useScreenMediaRequest } from '../capture/ScreenRequest';
 
-declare global {
-  // Chrome-specific constraints
-  interface MediaTrackConstraints {
-    mandatory: {
-      chromeMediaSource: string;
-      chromeMediaSourceId: string;
-      maxWidth: number;
-      maxHeight: number;
-      maxFrameRate: number;
-    };
-  }
-}
-
 const BitmapImage: React.FC<{ data: ArrayBuffer }> = ({ data }) => {
   const imageRef = useRef<HTMLImageElement>(null);
 

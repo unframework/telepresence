@@ -84,7 +84,19 @@ const SpaceView: React.FC<RouteComponentProps<{
   const participantId = decodeURIComponent(match.params.participantId);
 
   // @todo handle error
-  const spaceStatusAsync = useAsync(fetchSpaceStatus, [spaceId]);
+  const spaceStatusAsync = useAsync(fetchSpaceStatus, [spaceId], {
+    // preserve existing data, if any
+    setLoading(prevState) {
+      return {
+        ...prevState,
+        status: 'loading',
+        loading: true
+      };
+    }
+  });
+
+  const spaceStatus = spaceStatusAsync.result;
+  const spaceStatusLoaded = !!spaceStatus;
 
   // manage per-participant dynamic data
   const [participantScreenData, setParticipantScreenData] = useState<{
@@ -92,8 +104,6 @@ const SpaceView: React.FC<RouteComponentProps<{
   }>({});
 
   useEffect(() => {
-    const spaceStatus = spaceStatusAsync.result;
-
     if (!spaceStatus) {
       return;
     }
@@ -122,13 +132,11 @@ const SpaceView: React.FC<RouteComponentProps<{
 
       return updatedData;
     });
-  }, [spaceStatusAsync.result]);
+  }, [spaceStatus]);
 
   // maintain socket instance
   useEffect(() => {
-    const spaceStatus = spaceStatusAsync.result;
-
-    if (!spaceStatus) {
+    if (!spaceStatusLoaded) {
       return;
     }
 
@@ -147,7 +155,7 @@ const SpaceView: React.FC<RouteComponentProps<{
         return;
       }
 
-      if (eventSpaceId !== spaceStatus.spaceId) {
+      if (eventSpaceId !== spaceId) {
         return;
       }
 
@@ -167,7 +175,7 @@ const SpaceView: React.FC<RouteComponentProps<{
     return () => {
       socket.close();
     };
-  }, [spaceStatusAsync.result]);
+  }, [spaceId, spaceStatusLoaded]);
 
   const [
     setVideoStream,
